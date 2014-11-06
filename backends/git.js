@@ -1,6 +1,6 @@
 'use strict';
 
-var zogProcess = require ('xcraft-core-process');
+var xProcess = require ('xcraft-core-process');
 
 exports.clone = function (uri, destPath, callbackDone) {
   var args = [
@@ -9,5 +9,5 @@ exports.clone = function (uri, destPath, callbackDone) {
     destPath
   ];
 
-  zogProcess.spawn ('git', args, callbackDone);
+  xProcess.spawn ('git', args, callbackDone);
 };
