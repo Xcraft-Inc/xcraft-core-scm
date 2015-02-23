@@ -9,5 +9,5 @@ exports.clone = function (uri, destPath, callback) {
     destPath
   ];
 
-  xProcess.spawn ('git', args, callback);
+  xProcess.spawn ('git', args, {}, callback);
 };
