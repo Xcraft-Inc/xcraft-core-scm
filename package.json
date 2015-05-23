@@ -11,14 +11,15 @@
     "backends",
     "scm"
   ],
-  "repository" : {
-    "type" : "file",
-    "url" : "lib/xcraft-core-scm"
+  "repository": {
+    "type": "file",
+    "url": "lib/xcraft-core-scm"
   },
   "author": "Mathieu Schroeter",
   "license": "MIT",
   "dependencies": {
-    "xcraft-core-fs" : "0.1.0"
+    "async": "^1.0.0",
+    "xcraft-core-fs": "0.1.0"
   },
   "devDependencies": {}
 }
