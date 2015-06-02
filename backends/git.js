@@ -34,6 +34,17 @@ exports.clone = function (uri, ref, destPath, callback) {
       ];
 
       xProcess.spawn ('git', args, {cwd: destPath}, callback);
+    },
+
+    function (callback) {
+      var args = [
+        'submodule',
+        'update',
+        '--init',
+        '--recursive'
+      ];
+
+      xProcess.spawn ('git', args, {cwd: destPath}, callback);
     }
   ], callback);
 };
