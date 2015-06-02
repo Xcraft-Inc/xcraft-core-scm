@@ -11,7 +11,6 @@ exports.clone = function (uri, ref, destPath, callback) {
       var args = [
         'clone',
         '--recursive',
-        '--depth', '1',
         uri,
         destPath
       ];
