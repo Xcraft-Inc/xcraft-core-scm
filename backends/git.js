@@ -10,6 +10,7 @@ exports.clone = function (uri, ref, destPath, callback) {
     function (callback) {
       var args = [
         'clone',
+        '--progress',
         '--recursive',
         uri,
         destPath
