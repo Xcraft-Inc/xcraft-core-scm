@@ -11,13 +11,22 @@ exports.clone = function (uri, ref, destPath, callback) {
 
   var subst = null;
   var mountDir = path.dirname (destPath);
+  var mountDest = '';
 
   xFs.mkdir (mountDir);
 
   async.series ([
     function (callback) {
       subst = new Subst (mountDir);
-      subst.mount (callback);
+      subst.mount (function (err, drive) {
+        if (err) {
+          callback (err);
+          return;
+        }
+
+        mountDest = path.join (drive, path.basename (destPath));
+        callback ();
+      });
     },
 
     function (callback) {
@@ -26,7 +35,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         '--progress',
         '--recursive',
         uri,
-        destPath
+        mountDest
       ];
 
       xProcess.spawn ('git', args, {}, callback);
@@ -47,7 +56,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         ref
       ];
 
-      xProcess.spawn ('git', args, {cwd: destPath}, callback);
+      xProcess.spawn ('git', args, {cwd: mountDest}, callback);
     },
 
     function (callback) {
@@ -58,7 +67,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         '--recursive'
       ];
 
-      xProcess.spawn ('git', args, {cwd: destPath}, callback);
+      xProcess.spawn ('git', args, {cwd: mountDest}, callback);
     },
 
     function (callback) {
