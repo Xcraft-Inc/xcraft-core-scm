@@ -2,7 +2,7 @@
 
 var xProcess = require ('xcraft-core-process') ();
 var xFs      = require ('xcraft-core-fs');
-var Subst    = require ('xcraft-core-subst');
+var Subst    = require ('xcraft-core-subst').Subst;
 
 exports.clone = function (uri, ref, destPath, callback) {
   var async = require ('async');
