@@ -1,8 +1,10 @@
 'use strict';
 
-var xProcess = require ('xcraft-core-process') ();
-var xFs      = require ('xcraft-core-fs');
-var Subst    = require ('xcraft-core-subst');
+var xProcess  = require ('xcraft-core-process') ();
+var xFs       = require ('xcraft-core-fs');
+var xPath     = require ('xcraft-core-path');
+var xPlatform = require ('xcraft-core-platform');
+var Subst     = require ('xcraft-core-subst');
 
 exports.clone = function (uri, ref, destPath, callback) {
   var async = require ('async');
@@ -14,6 +16,17 @@ exports.clone = function (uri, ref, destPath, callback) {
   var mountDest = '';
 
   xFs.mkdir (mountDir);
+
+  var gitPath = path.dirname (xPath.isIn ('git').location);
+
+  /* FIXME: like for etc/path, we should have an etc/env in order to load all
+   * environment variables installed by a package. GIT_EXEC_PATH should be
+   * deployed in an etc/env/bootstrap+git.json file.
+   */
+  var env = process.env;
+  if (xPlatform.getOs () !== 'win') {
+    env.GIT_EXEC_PATH = path.join (gitPath, '../libexec/git-core');
+  }
 
   async.series ([
     function (callback) {
@@ -38,7 +51,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         mountDest
       ];
 
-      xProcess.spawn ('git', args, {}, callback);
+      xProcess.spawn ('git', args, {env: env}, callback);
     },
 
     function (callback) {
@@ -56,7 +69,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         ref
       ];
 
-      xProcess.spawn ('git', args, {cwd: mountDest}, callback);
+      xProcess.spawn ('git', args, {env: env, cwd: mountDest}, callback);
     },
 
     function (callback) {
@@ -67,7 +80,7 @@ exports.clone = function (uri, ref, destPath, callback) {
         '--recursive'
       ];
 
-      xProcess.spawn ('git', args, {cwd: mountDest}, callback);
+      xProcess.spawn ('git', args, {env: env, cwd: mountDest}, callback);
     },
 
     function (callback) {
