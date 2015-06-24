@@ -3,14 +3,14 @@
 var xProcess  = require ('xcraft-core-process') ();
 var xPath     = require ('xcraft-core-path');
 var xPlatform = require ('xcraft-core-platform');
-var subst     = require ('xcraft-core-subst');
+var xSubst    = require ('xcraft-core-subst');
 
 exports.clone = function (uri, ref, destPath, callback) {
   var async = require ('async');
   var fs    = require ('fs');
   var path  = require ('path');
 
-  subst.wrap (destPath, function (err, dest, callback) {
+  xSubst.wrap (destPath, function (err, dest, callback) {
     if (err) {
       callback (err);
       return;
