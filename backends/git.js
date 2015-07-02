@@ -1,6 +1,13 @@
 'use strict';
 
-var xProcess  = require ('xcraft-core-process') ();
+var moduleName = 'scm/git';
+
+var xProcess  = require ('xcraft-core-process') ({
+  logger: 'xlog',
+  parser: 'git',
+  mod:    moduleName,
+  events: true
+});
 var xPath     = require ('xcraft-core-path');
 var xPlatform = require ('xcraft-core-platform');
 var xSubst    = require ('xcraft-core-subst');
