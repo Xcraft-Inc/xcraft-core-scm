@@ -33,6 +33,7 @@ exports.clone = function (uri, ref, destPath, callback) {
     var env = process.env;
     if (xPlatform.getOs () !== 'win') {
       env.GIT_EXEC_PATH = path.join (gitPath, '../libexec/git-core');
+      env.GIT_TEMPLATE_DIR = path.join (gitPath, '../share/git-core/templates');
     }
 
     async.series ([
