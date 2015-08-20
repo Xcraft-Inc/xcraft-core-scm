@@ -28,7 +28,7 @@ exports.clone = function (uri, ref, destPath, callback) {
 
     /* FIXME: like for etc/path, we should have an etc/env in order to load all
      * environment variables installed by a package. GIT_EXEC_PATH should be
-     * deployed in an etc/env/bootstrap+git.json file.
+     * deployed in an etc/env/torvalds+git.json file.
      */
     var env = process.env;
     if (xPlatform.getOs () !== 'win') {
