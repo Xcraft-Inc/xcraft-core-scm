@@ -8,7 +8,7 @@ var xProcess  = require ('xcraft-core-process') ({
   mod:    moduleName,
   events: true
 });
-var xPath     = require ('xcraft-core-path');
+var xEnv      = require ('xcraft-core-env');
 var xPlatform = require ('xcraft-core-platform');
 var xSubst    = require ('xcraft-core-subst');
 
@@ -24,7 +24,7 @@ exports.clone = function (uri, ref, destPath, callback) {
     }
 
     var gitBin  = 'git' + xPlatform.getExecExt ();
-    var gitPath = path.dirname (xPath.isIn (gitBin).location);
+    var gitPath = path.dirname (xEnv.var.path.isIn (gitBin).location);
 
     /* FIXME: like for etc/path, we should have an etc/env in order to load all
      * environment variables installed by a package. GIT_EXEC_PATH should be

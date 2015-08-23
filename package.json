@@ -19,8 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "async": "^1.4.0",
+    "xcraft-core-env": "0.1.0",
     "xcraft-core-fs": "0.1.0",
-    "xcraft-core-path": "0.1.0",
     "xcraft-core-platform": "0.1.0",
     "xcraft-core-process": "0.1.0",
     "xcraft-core-subst": "0.1.0"
