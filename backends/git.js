@@ -23,19 +23,6 @@ exports.clone = function (uri, ref, destPath, callback) {
       return;
     }
 
-    var gitBin  = 'git' + xPlatform.getExecExt ();
-    var gitPath = path.dirname (xEnv.var.path.isIn (gitBin).location);
-
-    /* FIXME: like for etc/path, we should have an etc/env in order to load all
-     * environment variables installed by a package. GIT_EXEC_PATH should be
-     * deployed in an etc/env/torvalds+git.json file.
-     */
-    var env = process.env;
-    if (xPlatform.getOs () !== 'win') {
-      env.GIT_EXEC_PATH = path.join (gitPath, '../libexec/git-core');
-      env.GIT_TEMPLATE_DIR = path.join (gitPath, '../share/git-core/templates');
-    }
-
     async.series ([
       function (callback) {
         var args = [
@@ -46,7 +33,7 @@ exports.clone = function (uri, ref, destPath, callback) {
           dest
         ];
 
-        xProcess.spawn ('git', args, {env: env}, callback);
+        xProcess.spawn ('git', args, {}, callback);
       },
 
       function (callback) {
@@ -64,7 +51,7 @@ exports.clone = function (uri, ref, destPath, callback) {
           ref
         ];
 
-        xProcess.spawn ('git', args, {env: env, cwd: dest}, callback);
+        xProcess.spawn ('git', args, {cwd: dest}, callback);
       },
 
       function (callback) {
@@ -75,7 +62,7 @@ exports.clone = function (uri, ref, destPath, callback) {
           '--recursive'
         ];
 
-        xProcess.spawn ('git', args, {env: env, cwd: dest}, callback);
+        xProcess.spawn ('git', args, {cwd: dest}, callback);
       }
     ], callback);
   }, callback);
