@@ -8,14 +8,11 @@ var xProcess  = require ('xcraft-core-process') ({
   mod:    moduleName,
   events: true
 });
-var xEnv      = require ('xcraft-core-env');
-var xPlatform = require ('xcraft-core-platform');
 var xSubst    = require ('xcraft-core-subst');
 
 exports.clone = function (uri, ref, destPath, callback) {
   var async = require ('async');
   var fs    = require ('fs');
-  var path  = require ('path');
 
   xSubst.wrap (destPath, function (err, dest, callback) {
     if (err) {
