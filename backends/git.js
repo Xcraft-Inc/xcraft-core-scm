@@ -1,20 +1,18 @@
 'use strict';
 
-var moduleName = 'scm/git';
-
-var xProcess  = require ('xcraft-core-process') ({
-  logger: 'xlog',
-  parser: 'git',
-  mod:    moduleName,
-  events: true
-});
 var xSubst    = require ('xcraft-core-subst');
 
-exports.clone = function (uri, ref, destPath, callback) {
+exports.clone = function (uri, ref, destPath, response, callback) {
+  const xProcess = require ('xcraft-core-process') ({
+    logger: 'xlog',
+    parser: 'git',
+    response: response
+  });
+
   var async = require ('async');
   var fs    = require ('fs');
 
-  xSubst.wrap (destPath, function (err, dest, callback) {
+  xSubst.wrap (destPath, response, function (err, dest, callback) {
     if (err) {
       callback (err);
       return;
