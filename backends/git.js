@@ -6,7 +6,7 @@ exports.clone = function (uri, ref, destPath, response, callback) {
   const xProcess = require ('xcraft-core-process') ({
     logger: 'xlog',
     parser: 'git',
-    response: response
+    resp:   response
   });
 
   var async = require ('async');
