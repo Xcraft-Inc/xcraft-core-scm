@@ -1,58 +1,46 @@
 'use strict';
 
-var xSubst = require('xcraft-core-subst');
+const watt = require('gigawatts');
+const xSubst = require('xcraft-core-subst');
 
-exports.clone = function(uri, ref, destPath, response, callback) {
+const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
+  if (err) {
+    throw err;
+  }
+
   const xProcess = require('xcraft-core-process')({
     logger: 'xlog',
     parser: 'git',
-    resp: response,
+    resp,
   });
 
-  var async = require('async');
-  var fs = require('fs');
+  const fs = require('fs');
 
-  xSubst.wrap(
-    destPath,
-    response,
-    function(err, dest, callback) {
-      if (err) {
-        callback(err);
-        return;
-      }
+  const args = ['clone', '--progress', '--recursive', uri, dest];
+  yield xProcess.spawn('git', args, {}, next);
 
-      async.series(
-        [
-          function(callback) {
-            var args = ['clone', '--progress', '--recursive', uri, dest];
+  if (!fs.existsSync(destPath)) {
+    return 'nothing cloned';
+  }
 
-            xProcess.spawn('git', args, {}, callback);
-          },
+  if (!ref) {
+    ref = 'master';
+  }
 
-          function(callback) {
-            if (!fs.existsSync(destPath)) {
-              callback('nothing cloned');
-              return;
-            }
-
-            if (!ref) {
-              ref = 'master';
-            }
-
-            var args = ['checkout', ref];
-
-            xProcess.spawn('git', args, {cwd: dest}, callback);
-          },
-
-          function(callback) {
-            var args = ['submodule', 'update', '--init', '--recursive'];
-
-            xProcess.spawn('git', args, {cwd: dest}, callback);
-          },
-        ],
-        callback
-      );
-    },
-    callback
+  yield xProcess.spawn('git', ['checkout', ref], {cwd: dest}, next);
+  yield xProcess.spawn(
+    'git',
+    ['submodule', 'update', '--init', '--recursive'],
+    {cwd: dest},
+    next
   );
-};
+});
+
+exports.clone = watt(function*(uri, ref, destPath, resp, next) {
+  yield xSubst.wrap(
+    destPath,
+    resp,
+    (err, dest, next) => gitClone(err, resp, dest, uri, ref, destPath, next),
+    next
+  );
+});
