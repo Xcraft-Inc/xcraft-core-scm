@@ -29,6 +29,7 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
   });
 
   const fs = require('fs');
+  const path = require('path');
 
   /* Clone the main repository */
 
@@ -65,7 +66,9 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
 
   /* Update all submodules */
 
-  if (process.env.GIT_CACHE_DIR) {
+  const hasSubmodules = fs.existsSync(path.join(dest, './.gitmodules'));
+
+  if (process.env.GIT_CACHE_DIR && hasSubmodules) {
     yield xProcess.spawn('git', ['submodule', 'init'], {cwd: dest}, next);
 
     const args = ['config', '--get-regexp', 'submodule\\..*\\.url'];
@@ -81,7 +84,7 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
 
   yield xProcess.spawn('git', args, {cwd: dest}, next);
 
-  if (process.env.GIT_CACHE_DIR) {
+  if (process.env.GIT_CACHE_DIR && hasSubmodules) {
     const args = [
       'submodule',
       '--quiet',
