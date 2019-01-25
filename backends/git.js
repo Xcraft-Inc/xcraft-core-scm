@@ -17,7 +17,13 @@ const updateCache = watt(function*(xProcess, resp, args, dest, next) {
   }
 });
 
-const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
+const gitClone = watt(function*(
+  err,
+  resp,
+  dest,
+  {uri, ref, out, externals},
+  next
+) {
   if (err) {
     throw err;
   }
@@ -52,7 +58,7 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
   args.push(dest);
   yield xProcess.spawn('git', args, {}, next);
 
-  if (!fs.existsSync(destPath)) {
+  if (!fs.existsSync(out)) {
     return 'nothing cloned';
   }
 
@@ -66,7 +72,8 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
 
   /* Update all submodules */
 
-  const hasSubmodules = fs.existsSync(path.join(dest, './.gitmodules'));
+  const hasSubmodules =
+    externals && fs.existsSync(path.join(dest, './.gitmodules'));
 
   if (process.env.GIT_CACHE_DIR && hasSubmodules) {
     yield xProcess.spawn('git', ['submodule', 'init'], {cwd: dest}, next);
@@ -75,32 +82,34 @@ const gitClone = watt(function*(err, resp, dest, uri, ref, destPath, next) {
     yield updateCache(xProcess, resp, args, dest);
   }
 
-  args = ['submodule', 'update', '--init', '--recursive'];
+  if (hasSubmodules) {
+    args = ['submodule', 'update', '--init', '--recursive'];
 
-  if (process.env.GIT_CACHE_DIR) {
-    args.push('--reference');
-    args.push(process.env.GIT_CACHE_DIR);
-  }
+    if (process.env.GIT_CACHE_DIR) {
+      args.push('--reference');
+      args.push(process.env.GIT_CACHE_DIR);
+    }
 
-  yield xProcess.spawn('git', args, {cwd: dest}, next);
+    yield xProcess.spawn('git', args, {cwd: dest}, next);
 
-  if (process.env.GIT_CACHE_DIR && hasSubmodules) {
-    const args = [
-      'submodule',
-      '--quiet',
-      'foreach',
-      '--recursive',
-      'git config --get-regexp submodule\\..*\\.url || true',
-    ];
-    yield updateCache(xProcess, resp, args, dest);
+    if (process.env.GIT_CACHE_DIR) {
+      const args = [
+        'submodule',
+        '--quiet',
+        'foreach',
+        '--recursive',
+        'git config --get-regexp submodule\\..*\\.url || true',
+      ];
+      yield updateCache(xProcess, resp, args, dest);
+    }
   }
 });
 
-exports.clone = watt(function*(uri, ref, destPath, resp, next) {
+exports.clone = watt(function*(options, resp, next) {
   yield xSubst.wrap(
-    destPath,
+    options.out,
     resp,
-    (err, dest, next) => gitClone(err, resp, dest, uri, ref, destPath, next),
+    (err, dest, next) => gitClone(err, resp, dest, options, next),
     next
   );
 });
