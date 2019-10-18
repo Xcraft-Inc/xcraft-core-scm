@@ -137,7 +137,7 @@ exports.remoteRef = watt(function*(remote, refname, resp, next) {
     ['ls-remote', '-q', remote, refname],
     {},
     next,
-    _ref => (ref = _ref.split(/ +/)[0])
+    _ref => (ref = _ref.trim().split(/[ \t]+/)[0])
   );
 
   return ref;
