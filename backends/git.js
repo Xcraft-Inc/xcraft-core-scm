@@ -122,3 +122,23 @@ exports.clone = watt(function*(options, resp, next) {
     next
   );
 });
+
+exports.remoteRef = watt(function*(remote, refname, resp, next) {
+  let ref = null;
+
+  const xProcess = require('xcraft-core-process')({
+    logger: 'xlog',
+    parser: 'git',
+    resp,
+  });
+
+  yield xProcess.spawn(
+    'git',
+    ['ls-remote', '-q', remote, refname],
+    {},
+    next,
+    _ref => (ref = _ref.split(/ +/)[0])
+  );
+
+  return ref;
+});
