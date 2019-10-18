@@ -69,6 +69,13 @@ const gitClone = watt(function*(
   }
 
   yield xProcess.spawn('git', ['checkout', ref], {cwd: dest}, next);
+  yield xProcess.spawn(
+    'git',
+    ['rev-parse', 'HEAD'],
+    {cwd: dest},
+    next,
+    _ref => (ref = _ref.trim())
+  );
 
   /* Update all submodules */
 
@@ -103,10 +110,12 @@ const gitClone = watt(function*(
       yield updateCache(xProcess, resp, args, dest);
     }
   }
+
+  return ref;
 });
 
 exports.clone = watt(function*(options, resp, next) {
-  yield xSubst.wrap(
+  return yield xSubst.wrap(
     options.out,
     resp,
     (err, dest, next) => gitClone(err, resp, dest, options, next),
