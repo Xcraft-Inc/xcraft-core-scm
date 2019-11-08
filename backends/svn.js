@@ -3,6 +3,10 @@
 const watt = require('gigawatts');
 const xSubst = require('xcraft-core-subst');
 
+/* HACK: Very ugly but it's necessary with the very bad certificates sometimes used */
+const ignoreCert =
+  '--trust-server-cert-failures=unknown-ca,cn-mismatch,expired,not-yet-valid,other';
+
 const svnCheckout = watt(function*(
   err,
   resp,
@@ -27,7 +31,7 @@ const svnCheckout = watt(function*(
     ref = 'HEAD';
   }
 
-  let args = ['checkout', '--revision', ref];
+  let args = ['checkout', ignoreCert, '--revision', ref];
 
   if (!externals) {
     args.push('--ignore-externals');
@@ -45,7 +49,7 @@ const svnCheckout = watt(function*(
 
   yield xProcess.spawn(
     'svn',
-    ['info', '--show-item', 'revision'],
+    ['info', ignoreCert, '--show-item', 'revision'],
     {cwd: dest},
     next,
     _ref => (ref = _ref.trim())
@@ -73,7 +77,7 @@ exports.remoteRef = watt(function*(remote, refname, resp, next) {
 
   yield xProcess.spawn(
     'svn',
-    ['info', '--show-item', 'revision'],
+    ['info', ignoreCert, '--show-item', 'revision'],
     {},
     next,
     _ref => (ref = _ref.trim())
