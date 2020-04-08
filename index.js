@@ -8,7 +8,7 @@ var backends = {};
 
 var backendsCmd = xFs.ls(backendsRoot, /\.js$/);
 
-backendsCmd.forEach(function(cmd) {
+backendsCmd.forEach(function (cmd) {
   var cmdName = cmd.replace(/\.js$/, '');
   backends[cmdName] = require(path.join(backendsRoot, cmd));
 });

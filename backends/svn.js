@@ -7,7 +7,7 @@ const xSubst = require('xcraft-core-subst');
 const ignoreCert =
   '--trust-server-cert-failures=unknown-ca,cn-mismatch,expired,not-yet-valid,other';
 
-const svnCheckout = watt(function*(
+const svnCheckout = watt(function* (
   err,
   resp,
   dest,
@@ -52,13 +52,13 @@ const svnCheckout = watt(function*(
     ['info', ignoreCert, '--show-item', 'revision'],
     {cwd: dest},
     next,
-    _ref => (ref = _ref.trim())
+    (_ref) => (ref = _ref.trim())
   );
 
   return ref;
 });
 
-exports.clone = watt(function*(options, resp, next) {
+exports.clone = watt(function* (options, resp, next) {
   return yield xSubst.wrap(
     options.out,
     resp,
@@ -67,7 +67,7 @@ exports.clone = watt(function*(options, resp, next) {
   );
 });
 
-exports.remoteRef = watt(function*(remote, refname, resp, next) {
+exports.remoteRef = watt(function* (remote, refname, resp, next) {
   let ref = null;
 
   const xProcess = require('xcraft-core-process')({
@@ -80,7 +80,7 @@ exports.remoteRef = watt(function*(remote, refname, resp, next) {
     ['info', ignoreCert, '--show-item', 'revision'],
     {},
     next,
-    _ref => (ref = _ref.trim())
+    (_ref) => (ref = _ref.trim())
   );
 
   return ref;

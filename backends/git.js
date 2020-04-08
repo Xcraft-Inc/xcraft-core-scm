@@ -3,10 +3,10 @@
 const watt = require('gigawatts');
 const xSubst = require('xcraft-core-subst');
 
-const updateCache = watt(function*(xProcess, resp, args, dest, next) {
+const updateCache = watt(function* (xProcess, resp, args, dest, next) {
   const remotes = [];
 
-  yield xProcess.spawn('git', args, {cwd: dest}, next, row =>
+  yield xProcess.spawn('git', args, {cwd: dest}, next, (row) =>
     remotes.push(row.replace(/^submodule.*url/, '').trim())
   );
 
@@ -17,7 +17,7 @@ const updateCache = watt(function*(xProcess, resp, args, dest, next) {
   }
 });
 
-const gitClone = watt(function*(
+const gitClone = watt(function* (
   err,
   resp,
   dest,
@@ -74,7 +74,7 @@ const gitClone = watt(function*(
     ['rev-parse', 'HEAD'],
     {cwd: dest},
     next,
-    _ref => (ref = _ref.trim())
+    (_ref) => (ref = _ref.trim())
   );
 
   /* Update all submodules */
@@ -114,7 +114,7 @@ const gitClone = watt(function*(
   return ref;
 });
 
-exports.clone = watt(function*(options, resp, next) {
+exports.clone = watt(function* (options, resp, next) {
   return yield xSubst.wrap(
     options.out,
     resp,
@@ -123,7 +123,7 @@ exports.clone = watt(function*(options, resp, next) {
   );
 });
 
-exports.remoteRef = watt(function*(remote, refname, resp, next) {
+exports.remoteRef = watt(function* (remote, refname, resp, next) {
   let ref = null;
 
   const xProcess = require('xcraft-core-process')({
@@ -137,7 +137,7 @@ exports.remoteRef = watt(function*(remote, refname, resp, next) {
     ['ls-remote', '-q', remote, refname],
     {},
     next,
-    _ref => (ref = _ref.trim().split(/[ \t]+/)[0])
+    (_ref) => (ref = _ref.trim().split(/[ \t]+/)[0])
   );
 
   return ref;
