@@ -155,7 +155,7 @@ exports.remoteRef = watt(function* (remote, refname, resp, next) {
 
   yield xProcess.spawn(
     'git',
-    ['ls-remote', '-q', remote, refname],
+    ['-c', 'core.longpaths=true', 'ls-remote', '-q', remote, refname],
     {},
     next,
     (_ref) => (ref = _ref.trim().split(/[ \t]+/)[0])
