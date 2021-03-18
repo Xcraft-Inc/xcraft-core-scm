@@ -3,13 +3,27 @@
 const watt = require('gigawatts');
 const xSubst = require('xcraft-core-subst');
 
-const gitCache = watt(function* (xProcess, resp, remote, next) {
+const gitProc = (xProcess) =>
+  watt(function* (args, cwd, next) {
+    if (!next) {
+      next = cwd;
+      cwd = null;
+    }
+    yield xProcess.spawn(
+      'git',
+      ['-c', 'core.longpaths=true', ...args],
+      cwd ? {cwd} : {},
+      next
+    );
+  });
+
+const gitCache = watt(function* (git, resp, remote) {
   resp.log.info(`add / update ${remote} in cache`);
-  yield xProcess.spawn('git', ['cache', 'add', remote], {}, next);
-  yield xProcess.spawn('git', ['cache', 'update', remote], {}, next);
+  yield git(['cache', 'add', remote]);
+  yield git(['cache', 'update', remote]);
 });
 
-const updateCache = watt(function* (xProcess, resp, args, dest, next) {
+const updateCache = watt(function* (xProcess, git, resp, args, dest, next) {
   const remotes = [];
 
   yield xProcess.spawn('git', args, {cwd: dest}, next, (row) =>
@@ -17,7 +31,7 @@ const updateCache = watt(function* (xProcess, resp, args, dest, next) {
   );
 
   for (const remote of remotes) {
-    gitCache(xProcess, resp, remote, next.parallel());
+    gitCache(git, resp, remote, next.parallel());
   }
   yield next.sync();
 });
@@ -42,14 +56,16 @@ const gitClone = watt(function* (
   const fs = require('fs');
   const path = require('path');
 
+  const git = gitProc(xProcess);
+
   /* Clone the main repository */
 
   if (process.env.GIT_CACHE_DIR) {
-    yield xProcess.spawn('git', ['cache', 'init'], {}, next);
+    yield git(['cache', 'init']);
 
     resp.log.info(`add / update ${uri} in cache`);
-    yield xProcess.spawn('git', ['cache', 'add', uri], {}, next);
-    yield xProcess.spawn('git', ['cache', 'update', uri], {}, next);
+    yield git(['cache', 'add', uri]);
+    yield git(['cache', 'update', uri]);
   }
 
   let args = ['clone', '--jobs', '4', '--progress'];
@@ -61,7 +77,7 @@ const gitClone = watt(function* (
 
   args.push(uri);
   args.push(dest);
-  yield xProcess.spawn('git', args, {}, next);
+  yield git(args);
 
   if (!fs.existsSync(out)) {
     return 'nothing cloned';
@@ -73,10 +89,10 @@ const gitClone = watt(function* (
     ref = 'master';
   }
 
-  yield xProcess.spawn('git', ['checkout', ref], {cwd: dest}, next);
+  yield git(['checkout', ref], dest);
   yield xProcess.spawn(
     'git',
-    ['rev-parse', 'HEAD'],
+    ['-c', 'core.longpaths=true', 'rev-parse', 'HEAD'],
     {cwd: dest},
     next,
     (_ref) => (ref = _ref.trim())
@@ -88,10 +104,10 @@ const gitClone = watt(function* (
     externals && fs.existsSync(path.join(dest, './.gitmodules'));
 
   if (process.env.GIT_CACHE_DIR && hasSubmodules) {
-    yield xProcess.spawn('git', ['submodule', 'init'], {cwd: dest}, next);
+    yield git(['-c', 'core.longpaths=true', 'submodule', 'init'], dest);
 
     const args = ['config', '--get-regexp', 'submodule\\..*\\.url'];
-    yield updateCache(xProcess, resp, args, dest);
+    yield updateCache(xProcess, git, resp, args, dest);
   }
 
   if (hasSubmodules) {
@@ -102,7 +118,7 @@ const gitClone = watt(function* (
       args.push(process.env.GIT_CACHE_DIR);
     }
 
-    yield xProcess.spawn('git', args, {cwd: dest}, next);
+    yield git(args, dest);
 
     if (process.env.GIT_CACHE_DIR) {
       const args = [
@@ -112,7 +128,7 @@ const gitClone = watt(function* (
         '--recursive',
         'git config --get-regexp submodule\\..*\\.url || true',
       ];
-      yield updateCache(xProcess, resp, args, dest);
+      yield updateCache(xProcess, git, resp, args, dest);
     }
   }
 
