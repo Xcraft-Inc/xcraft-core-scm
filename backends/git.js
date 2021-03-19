@@ -5,7 +5,7 @@ const path = require('path');
 const fse = require('fs-extra');
 
 const gitProc = (xProcess) =>
-  watt(function* (args, cwd, next) {
+  watt(function* (args, cwd, next, stdout) {
     if (!next) {
       next = cwd;
       cwd = null;
@@ -14,7 +14,8 @@ const gitProc = (xProcess) =>
       'git',
       ['-c', 'core.longpaths=true', ...args],
       cwd ? {cwd} : {},
-      next
+      next,
+      stdout
     );
   });
 
@@ -24,10 +25,10 @@ const gitCache = watt(function* (git, resp, remote) {
   yield git(['cache', 'update', remote]);
 });
 
-const updateCache = watt(function* (xProcess, git, resp, args, dest, next) {
+const updateCache = watt(function* (git, resp, args, dest, next) {
   const remotes = [];
 
-  yield xProcess.spawn('git', args, {cwd: dest}, next, (row) =>
+  yield git(args, dest, next, (row) =>
     remotes.push(row.replace(/^submodule.*url/, '').trim())
   );
 
@@ -78,13 +79,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   }
 
   yield git(['checkout', ref], dest);
-  yield xProcess.spawn(
-    'git',
-    ['-c', 'core.longpaths=true', 'rev-parse', 'HEAD'],
-    {cwd: dest},
-    next,
-    (_ref) => (ref = _ref.trim())
-  );
+  yield git(['rev-parse', 'HEAD'], dest, next, (_ref) => (ref = _ref.trim()));
 
   /* Update all submodules */
 
@@ -95,7 +90,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
     yield git(['-c', 'core.longpaths=true', 'submodule', 'init'], dest);
 
     const args = ['config', '--get-regexp', 'submodule\\..*\\.url'];
-    yield updateCache(xProcess, git, resp, args, dest);
+    yield updateCache(git, resp, args, dest);
   }
 
   if (hasSubmodules) {
@@ -116,7 +111,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
         '--recursive',
         'git config --get-regexp submodule\\..*\\.url || true',
       ];
-      yield updateCache(xProcess, git, resp, args, dest);
+      yield updateCache(git, resp, args, dest);
     }
   }
 
@@ -147,10 +142,11 @@ exports.remoteRef = watt(function* (remote, refname, resp, next) {
     resp,
   });
 
-  yield xProcess.spawn(
-    'git',
-    ['-c', 'core.longpaths=true', 'ls-remote', '-q', remote, refname],
-    {},
+  const git = gitProc(xProcess);
+
+  yield git(
+    ['ls-remote', '-q', remote, refname],
+    null,
     next,
     (_ref) => (ref = _ref.trim().split(/[ \t]+/)[0])
   );
