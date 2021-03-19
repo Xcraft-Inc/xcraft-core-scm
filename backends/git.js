@@ -83,10 +83,10 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
 
   /* Update all submodules */
 
-  const hasSubmodules =
-    externals && fse.existsSync(path.join(dest, './.gitmodules'));
+  const hasGitmodules = fse.existsSync(path.join(dest, './.gitmodules'));
+  const hasSubmodules = externals && hasGitmodules;
 
-  if (process.env.GIT_CACHE_DIR && hasSubmodules) {
+  if (process.env.GIT_CACHE_DIR && hasGitmodules) {
     yield git(['-c', 'core.longpaths=true', 'submodule', 'init'], dest);
 
     const args = ['config', '--get-regexp', 'submodule\\..*\\.url'];
