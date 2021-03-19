@@ -2,6 +2,8 @@
 
 const watt = require('gigawatts');
 const xSubst = require('xcraft-core-subst');
+const path = require('path');
+const fse = require('fs-extra');
 
 const gitProc = (xProcess) =>
   watt(function* (args, cwd, next) {
@@ -53,9 +55,6 @@ const gitClone = watt(function* (
     resp,
   });
 
-  const fs = require('fs');
-  const path = require('path');
-
   const git = gitProc(xProcess);
 
   /* Clone the main repository */
@@ -79,7 +78,7 @@ const gitClone = watt(function* (
   args.push(dest);
   yield git(args);
 
-  if (!fs.existsSync(out)) {
+  if (!fse.existsSync(dest)) {
     return 'nothing cloned';
   }
 
@@ -101,7 +100,7 @@ const gitClone = watt(function* (
   /* Update all submodules */
 
   const hasSubmodules =
-    externals && fs.existsSync(path.join(dest, './.gitmodules'));
+    externals && fse.existsSync(path.join(dest, './.gitmodules'));
 
   if (process.env.GIT_CACHE_DIR && hasSubmodules) {
     yield git(['-c', 'core.longpaths=true', 'submodule', 'init'], dest);
