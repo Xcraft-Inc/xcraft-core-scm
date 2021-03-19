@@ -1,7 +1,6 @@
 'use strict';
 
 const watt = require('gigawatts');
-const xSubst = require('xcraft-core-subst');
 const path = require('path');
 const fse = require('fs-extra');
 
@@ -38,17 +37,7 @@ const updateCache = watt(function* (xProcess, git, resp, args, dest, next) {
   yield next.sync();
 });
 
-const gitClone = watt(function* (
-  err,
-  resp,
-  dest,
-  {uri, ref, out, externals},
-  next
-) {
-  if (err) {
-    throw err;
-  }
-
+const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   const xProcess = require('xcraft-core-process')({
     logger: 'xlog',
     parser: 'git',
@@ -135,12 +124,18 @@ const gitClone = watt(function* (
 });
 
 exports.clone = watt(function* (options, resp, next) {
-  return yield xSubst.wrap(
-    options.out,
-    resp,
-    (err, dest, next) => gitClone(err, resp, dest, options, next),
-    next
-  );
+  const xcraftConfig = require('xcraft-core-etc')(null, resp).load('xcraft');
+
+  let res;
+  const tmp = fse.mkdtempSync(path.join(xcraftConfig.tempRoot, 'git-'));
+  try {
+    res = yield gitClone(resp, tmp, options, next);
+    fse.moveSync(tmp, options.out);
+  } finally {
+    fse.removeSync(tmp);
+  }
+
+  return res;
 });
 
 exports.remoteRef = watt(function* (remote, refname, resp, next) {
