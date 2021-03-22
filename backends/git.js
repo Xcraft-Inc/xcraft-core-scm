@@ -5,19 +5,18 @@ const path = require('path');
 const fse = require('fs-extra');
 
 const gitProc = (xProcess) =>
-  watt(function* (args, cwd, next, stdout) {
-    if (!next) {
-      next = cwd;
-      cwd = null;
-    }
-    yield xProcess.spawn(
-      'git',
-      ['-c', 'core.longpaths=true', ...args],
-      cwd ? {cwd} : {},
-      next,
-      stdout
-    );
-  });
+  watt(
+    function* (next, args, cwd, stdout) {
+      yield xProcess.spawn(
+        'git',
+        ['-c', 'core.longpaths=true', ...args],
+        cwd ? {cwd} : {},
+        next,
+        stdout
+      );
+    },
+    {prepend: true}
+  );
 
 const gitCache = watt(function* (git, resp, remote) {
   resp.log.info(`add / update ${remote} in cache`);
@@ -28,8 +27,11 @@ const gitCache = watt(function* (git, resp, remote) {
 const updateCache = watt(function* (git, resp, args, dest, next) {
   const remotes = [];
 
-  yield git(args, dest, next, (row) =>
-    remotes.push(row.replace(/^submodule.*url/, '').trim())
+  yield git(
+    args,
+    dest,
+    (row) => remotes.push(row.replace(/^submodule.*url/, '').trim()),
+    next
   );
 
   for (const remote of remotes) {
@@ -79,7 +81,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   }
 
   yield git(['checkout', ref], dest);
-  yield git(['rev-parse', 'HEAD'], dest, next, (_ref) => (ref = _ref.trim()));
+  yield git(['rev-parse', 'HEAD'], dest, (_ref) => (ref = _ref.trim()), next);
 
   /* Update all submodules */
 
@@ -118,13 +120,13 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   return ref;
 });
 
-exports.clone = watt(function* (options, resp, next) {
+exports.clone = watt(function* (options, resp) {
   const xcraftConfig = require('xcraft-core-etc')(null, resp).load('xcraft');
 
   let res;
   const tmp = fse.mkdtempSync(path.join(xcraftConfig.tempRoot, 'git-'));
   try {
-    res = yield gitClone(resp, tmp, options, next);
+    res = yield gitClone(resp, tmp, options);
     fse.moveSync(tmp, options.out);
   } finally {
     fse.removeSync(tmp);
@@ -147,8 +149,8 @@ exports.remoteRef = watt(function* (remote, refname, resp, next) {
   yield git(
     ['ls-remote', '-q', remote, refname],
     null,
-    next,
-    (_ref) => (ref = _ref.trim().split(/[ \t]+/)[0])
+    (_ref) => (ref = _ref.trim().split(/[ \t]+/)[0]),
+    next
   );
 
   return ref;
