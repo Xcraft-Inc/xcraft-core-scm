@@ -53,10 +53,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
 
   if (process.env.GIT_CACHE_DIR) {
     yield git(['cache', 'init']);
-
-    resp.log.info(`add / update ${uri} in cache`);
-    yield git(['cache', 'add', uri]);
-    yield git(['cache', 'update', uri]);
+    yield gitCache(git, resp, uri);
   }
 
   let args = ['clone', '--jobs', '4', '--progress'];
