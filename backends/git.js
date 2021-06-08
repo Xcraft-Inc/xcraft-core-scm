@@ -86,7 +86,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   const hasSubmodules = externals && hasGitmodules;
 
   if (process.env.GIT_CACHE_DIR && hasGitmodules) {
-    yield git(['-c', 'core.longpaths=true', 'submodule', 'init'], dest);
+    yield git(['submodule', 'init'], dest);
 
     const args = ['config', '--get-regexp', 'submodule\\..*\\.url'];
     yield updateCache(git, resp, args, dest);
