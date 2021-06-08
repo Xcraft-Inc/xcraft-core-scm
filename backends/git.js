@@ -71,6 +71,9 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
     return 'nothing cloned';
   }
 
+  yield git(['config', '--local', 'core.longpaths', 'true'], dest);
+  yield git(['config', '--local', 'core.ignoreStat', 'true'], dest);
+
   /* Checkout the right reference */
 
   if (!ref) {
