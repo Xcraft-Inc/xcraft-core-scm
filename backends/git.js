@@ -9,7 +9,7 @@ const gitProc = (xProcess) =>
     function* (next, args, cwd, stdout) {
       yield xProcess.spawn(
         'git',
-        ['-c', 'core.longpaths=true', ...args],
+        ['-c', 'core.longpaths=true', '-c', 'core.ignoreStat=true', ...args],
         cwd ? {cwd} : {},
         next,
         stdout
