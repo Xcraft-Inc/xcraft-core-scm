@@ -21,8 +21,9 @@
   "author": "Mathieu Schroeter",
   "license": "MIT",
   "dependencies": {
-    "async": "^1.4.0",
     "fs-extra": "^9.1.0",
+    "gigawatts": "^4.0.5",
+    "xcraft-core-etc": "^3.0.0",
     "xcraft-core-fs": "^2.0.0",
     "xcraft-core-process": "^1.0.0",
     "xcraft-core-subst": "^1.0.0"
