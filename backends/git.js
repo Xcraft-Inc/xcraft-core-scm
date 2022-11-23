@@ -9,7 +9,7 @@ const gitProc = (xProcess) =>
     function* (next, args, cwd, stdout) {
       yield xProcess.spawn(
         'git',
-        ['-c', 'core.longpaths=true', '-c', 'core.ignoreStat=true', ...args],
+        ['-c', 'core.longpaths=true', ...args],
         cwd ? {cwd} : {},
         next,
         stdout
@@ -72,7 +72,6 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   }
 
   yield git(['config', '--local', 'core.longpaths', 'true'], dest);
-  yield git(['config', '--local', 'core.ignoreStat', 'true'], dest);
 
   /* Checkout the right reference */
 
