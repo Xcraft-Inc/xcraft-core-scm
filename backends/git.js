@@ -56,7 +56,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
     yield gitCache(git, resp, uri);
   }
 
-  let args = ['clone', '--jobs', '8', '--progress'];
+  let args = ['clone', '--jobs', '4', '--progress'];
 
   if (process.env.GIT_CACHE_DIR) {
     args.push('--reference');
@@ -95,7 +95,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   }
 
   if (hasSubmodules) {
-    args = ['submodule', 'update', '--jobs', '8', '--init', '--recursive'];
+    args = ['submodule', 'update', '--jobs', '4', '--init', '--recursive'];
 
     if (process.env.GIT_CACHE_DIR) {
       args.push('--reference');
