@@ -4,6 +4,31 @@ const watt = require('gigawatts');
 const path = require('path');
 const fse = require('fs-extra');
 
+class OnceByDay {
+  #day = {};
+
+  constructor(index) {
+    return (func) => {
+      const self = this;
+      return watt(function* (...args) {
+        const id = args[index];
+        if (self._try(id)) {
+          yield func(...args);
+        }
+      });
+    };
+  }
+
+  _try(id) {
+    const day = new Date().getDate();
+    if (this.#day[id] !== day) {
+      this.#day[id] = day;
+      return true;
+    }
+    return false;
+  }
+}
+
 const gitProc = (xProcess) =>
   watt(
     function* (next, args, cwd, stdout) {
@@ -18,11 +43,13 @@ const gitProc = (xProcess) =>
     {prepend: true}
   );
 
-const gitCache = watt(function* (git, resp, remote) {
-  resp.log.info(`add / update ${remote} in cache`);
-  yield git(['cache', 'add', remote]);
-  yield git(['cache', 'update', remote]);
-});
+const gitCache = new OnceByDay(2)(
+  watt(function* (git, resp, remote) {
+    resp.log.info(`add / update ${remote} in cache`);
+    yield git(['cache', 'add', remote]);
+    yield git(['cache', 'update', remote]);
+  })
+);
 
 const updateCache = watt(function* (git, resp, args, dest, next) {
   const remotes = [];
