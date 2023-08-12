@@ -64,7 +64,12 @@ const updateCache = watt(function* (git, resp, args, dest, next) {
   for (const remote of remotes) {
     gitCache(git, resp, remote, next.parallel());
   }
-  yield next.sync();
+
+  try {
+    yield next.sync();
+  } catch (ex) {
+    resp.log.warn('git-cache error, continue...', ex.stack || ex.message || ex);
+  }
 });
 
 const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
@@ -78,9 +83,13 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
 
   /* Clone the main repository */
 
-  if (process.env.GIT_CACHE_DIR) {
-    yield git(['cache', 'init']);
-    yield gitCache(git, resp, uri);
+  try {
+    if (process.env.GIT_CACHE_DIR) {
+      yield git(['cache', 'init']);
+      yield gitCache(git, resp, uri);
+    }
+  } catch (ex) {
+    resp.log.warn('git-cache error, continue...', ex.stack || ex.message || ex);
   }
 
   let args = ['clone', '--jobs', '2', '--progress'];
