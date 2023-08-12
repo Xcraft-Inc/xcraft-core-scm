@@ -95,7 +95,7 @@ const gitClone = watt(function* (resp, dest, {uri, ref, externals}, next) {
   let args = ['clone', '--jobs', '2', '--progress'];
 
   if (process.env.GIT_CACHE_DIR) {
-    args.push('--reference');
+    args.push('--reference-if-able');
     args.push(process.env.GIT_CACHE_DIR);
   }
 
