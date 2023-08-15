@@ -190,3 +190,24 @@ exports.remoteRef = watt(function* (remote, refname, resp, next) {
 
   return ref;
 });
+
+exports.localRef = watt(function* (location, resp, next) {
+  let ref = null;
+
+  const xProcess = require('xcraft-core-process')({
+    logger: 'xlog',
+    parser: 'git',
+    resp,
+  });
+
+  const git = gitProc(xProcess);
+
+  yield git(
+    ['rev-parse', 'HEAD'],
+    location,
+    (_ref) => (ref = _ref.trim()),
+    next
+  );
+
+  return ref;
+});
