@@ -1,6 +1,6 @@
 {
   "name": "xcraft-core-scm",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Xcraft scm backends",
   "main": "index.js",
   "engines": {
